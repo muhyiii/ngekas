@@ -10,7 +10,7 @@ module.exports = {
       },
       barangId: {
         type: Sequelize.INTEGER,
-        onDelete: "CASCADE",
+        onDelete: "RESTRICT",
         onUpdate: "CASCADE",
         references: {
           model: "barangs",

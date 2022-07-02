@@ -24,6 +24,7 @@ const {
   indexHutang,
   cicilHutang,
   lunaskan,
+  hutangDetail,
 } = require("../controller/transaksiHutang");
 const validationMiddleware = require("../middleware/akunMiddleware");
 const { akunValidator } = require("../validator/akunValidator");
@@ -79,6 +80,8 @@ router.get("/transaksi/data", indexTransaksi);
 
 /// GET DATA HUTANG   ///
 router.get("/hutang/data", indexHutang);
+/// GET DATA  DETAIL HUTANG   ///
+router.get("/hutang/data/:id", hutangDetail);
 
 /// TAMBAH CICILAN HUTANG  ///
 router.post("/hutang/data/:id/cicil", cicilHutang);

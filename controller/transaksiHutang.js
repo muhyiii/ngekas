@@ -2,6 +2,7 @@ const TransaksiModel = require("../models").transaksi;
 const DetailTransaksiModel = require("../models").detailTransaksi;
 const HutangModel = require("../models").hutang;
 const BarangModel = require("../models").barang;
+const DataBarangTransaksiModel = require("../models").buBarang;
 const CicilanModel = require("../models").cicilan;
 
 const tambahTransaksi = async (req, res) => {
@@ -75,7 +76,7 @@ const tambahTransaksi = async (req, res) => {
       const buatHutang = await HutangModel.create({
         penghutang: pembeli,
         lunas: lunas,
-        sisa:nominalJual,
+        sisa: nominalJual,
         nominal: nominalJual,
         tempo: tempo,
         transaksiId: dataTransaksi.id,
@@ -104,7 +105,7 @@ const indexTransaksi = async (req, res) => {
       where: { outletId: idOutlet },
       include: [
         {
-          model: BarangModel,
+          model: DataBarangTransaksiModel,
           require: true,
           as: "barang",
           attributes: ["id", "barang", "hargaJual"],
@@ -279,15 +280,69 @@ const indexHutang = async (req, res) => {
   }
 };
 
+const hutangDetail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { idOutlet } = req.query;
+    const dataHutang = await HutangModel.findAll({
+      where: {
+        id: id,
+      },
+      include: [
+        {
+          model: CicilanModel,
+          require: true,
+          as: "cicilan",
+        },
+      ],
+    });
+    return res.json({
+      status: "Berhasil",
+      messege: `Berikut Hutang Dari Outlet ${idOutlet}`,
+      data: dataHutang,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(403).json({
+      status: "Gagal",
+      messege: "Ada Kesalahan",
+    });
+  }
+};
 const cicilHutang = async (req, res) => {
   try {
     const { id } = req.params;
     const { bayar } = req.body;
+    const dataHutangNow = await HutangModel.findByPk(id);
+    if (bayar >= dataHutangNow.sisa) {
+      await HutangModel.update(
+        {
+          lunas: "LUNAS",
+          sisa: 0,
+        },
+        {
+          where: {
+            id: id,
+          },
+        }
+      );
+      await TransaksiModel.update(
+        {
+          lunas: "LUNAS",
+        },
+        {
+          where: {
+            id: dataHutangNow.transaksiId,
+          },
+        }
+      );
+    }
     const dataCicil = await CicilanModel.create({
       hutangId: id,
       bayar: bayar,
     });
-    const dataHutangNow = await HutangModel.findByPk(id);
+   
+
     await HutangModel.update(
       {
         sisa: dataHutangNow.sisa - bayar,
@@ -298,6 +353,7 @@ const cicilHutang = async (req, res) => {
         },
       }
     );
+
     return res.json({
       status: "Berhasil",
       messege: `Berhasil mencicil hutang dari id ${id}`,
@@ -319,6 +375,7 @@ const lunaskan = async (req, res) => {
     const dataHutang = await HutangModel.update(
       {
         lunas: lunas,
+        sisa: 0,
       },
       {
         where: {
@@ -326,6 +383,7 @@ const lunaskan = async (req, res) => {
         },
       }
     );
+
     const dataLunas = await CicilanModel.update(
       {
         bayar: dataHutang.sisa,
@@ -336,6 +394,11 @@ const lunaskan = async (req, res) => {
         },
       }
     );
+    // if (dataLunas === 0 || dataLunas === null || dataLunas === undefined)
+    //   await CicilanModel.create({
+    //     bayar: dataHutang.sisa,
+    //     hutangId: id,
+    //   });
     await TransaksiModel.update(
       {
         lunas: lunas,
@@ -369,4 +432,5 @@ module.exports = {
   indexHutang,
   cicilHutang,
   lunaskan,
+  hutangDetail,
 };

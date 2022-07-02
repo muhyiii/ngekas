@@ -12,7 +12,7 @@ app.use(router);
 
 app.listen(port,
   
-  // "192.168.5.243" || "localhost", 
+  // "192.168.1.9" || "localhost", 
   () => {
   console.log(
     `....................Server Berjalan di port ${port} Berhasil....................`

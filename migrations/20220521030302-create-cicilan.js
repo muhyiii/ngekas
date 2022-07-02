@@ -9,7 +9,14 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       hutangId: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+        references: {
+          model: "hutangs",
+          key: "id",
+          as: "hutangId",
+        },
       },
       bayar: {
         type: Sequelize.INTEGER

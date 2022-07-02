@@ -1,4 +1,5 @@
 const BarangModel = require("../models").barang;
+const DataBarangTransaksiModel = require("../models").buBarang;
 
 const tambahBarang = async (req, res) => {
   try {
@@ -14,8 +15,17 @@ const tambahBarang = async (req, res) => {
     let body = req.body;
     // return res.send(body);
     const dataBarang = await BarangModel.create(body);
+    const dataBU = await DataBarangTransaksiModel.create({
+      barang: body.barang,
+      hargaAwal: body.hargaAwal,
+      hargaJual: body.hargaJual,
+      outletId: body.outletId,
+      kodeBarang: body.kodeBarang,
+      foto: body.foto,
+    });
 
     console.log(dataBarang);
+    console.log(dataBU);
     res.status(201).json({
       status: "Berhasil",
       messege: "Tambah Barang ngeKAS Berhasil",
